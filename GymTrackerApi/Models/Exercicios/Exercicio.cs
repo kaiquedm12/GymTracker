@@ -10,10 +10,10 @@ public class Exercicio
     public int Id { get; set; }
     public string Nome { get; set; } = string.Empty;
     public int Repeticoes { get; set; } 
-    public double peso { get; set; }
+    public double Peso { get; set; }
 
     // Chave estrangeira para o treino
-    public int TreinoId { get; set; }
+    public int? TreinoId { get; set; }
     public Treino? Treino { get; set; }
 
     public ICollection<TreinoExercicio> TreinosExercicios { get; set; }

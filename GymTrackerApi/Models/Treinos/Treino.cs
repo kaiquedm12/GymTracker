@@ -15,11 +15,10 @@ public class Treino
     public DateTime Data { get; set; } = DateTime.UtcNow;
     [Required(ErrorMessage = "A lista de exercícios é obrigatória.")]
     [MaxLength(500, ErrorMessage = "A lista de exercícios não pode exceder 500 caracteres.")]
-    public string ListaExercicios { get; set; } = string.Empty;
 
     // Um treino tem vários exercícios
     public List<Exercicio> Exercicios { get; set; } = new();
-    public ICollection<TreinoExercicio> TreinosExercicios { get; set; }
+    public ICollection<TreinoExercicio> TreinoExercicio { get; set; }
 
 
 }

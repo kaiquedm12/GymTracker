@@ -30,7 +30,7 @@ namespace GymTrackerApi.Data
             // Relacionamento Treino -> TreinoExercicio
             modelBuilder.Entity<TreinoExercicio>()
                 .HasOne(te => te.Treino)
-                .WithMany(t => t.TreinosExercicios)
+                .WithMany(t => t.TreinoExercicio)
                 .HasForeignKey(te => te.TreinoId);
 
             // Relacionamento Exercicio -> TreinoExercicio
