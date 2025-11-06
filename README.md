@@ -21,53 +21,55 @@ O projeto foi estruturado com **boas práticas de arquitetura**, **DTOs**, **Ser
 ---
 
 ## 🧱 Estrutura do Projeto
-
+```
 GymTrackerApi/
 │
-├── Controllers/
+├── 📂 Controllers/
 │ ├── ExercicioController.cs
 │ └── TreinoController.cs
 │
-├── Data/
+├── 📂 Data/
 │ └── AppDbContext.cs
 │
-├── DTOs/
-│ ├── ExercicioDTOs/
+├── 📂 DTOs/
+│ ├── 📂 ExercicioDTOs/
 │ │ ├── ExercicioDTO.cs
 │ │ ├── CreateExercicioDTO.cs
 │ │ └── UpdateExercicioDTO.cs
-│ ├── TreinoDTOs/
+│ │
+│ ├── 📂 TreinoDTOs/
 │ │ ├── TreinoDTO.cs
 │ │ ├── CreateTreinoDTO.cs
 │ │ └── UpdateTreinoDTO.cs
-│ └── TreinoExercicioDTOs/
+│ │
+│ └── 📂 TreinoExercicioDTOs/
 │
-├── Models/
-│ ├── Exercicios/
+├── 📂 Models/
+│ ├── 📂 Exercicios/
 │ │ └── Exercicio.cs
-│ ├── Treinos/
+│ │
+│ ├── 📂 Treinos/
 │ │ └── Treino.cs
-│ └── Relacionamentos/
+│ │
+│ └── 📂 Relacionamentos/
 │ └── TreinoExercicio.cs
 │
-├── Profiles/
+├── 📂 Profiles/
 │ ├── ExercicioProfile.cs
 │ └── TreinoProfile.cs
 │
-├── Services/
+├── 📂 Services/
 │ ├── ExercicioService.cs
 │ ├── TreinoService.cs
-│ └── Interfaces/
+│ │
+│ └── 📂 Interfaces/
 │ ├── IExercicioService.cs
 │ └── ITreinoService.cs
 │
-├── appsettings.json
-├── Program.cs
-└── .env
-
-yaml
-Copiar código
-
+├── ⚙️ appsettings.json
+├── ⚙️ Program.cs
+└── 🔐 .env
+```
 ---
 
 # 🏋️‍♂️ GymTracker API
@@ -208,5 +210,3 @@ Kaique Demetrio — Desenvolvedor Full Stack
 GitHub: https://github.com/kaiquedm12
 
 ---
-
-Se quiser, eu posso também gerar um arquivo `LICENSE` padrão (MIT) e/ou adicionar exemplos de requisições JSON para os endpoints. Me diz o que prefere.
