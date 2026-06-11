@@ -1,138 +1,369 @@
-# 🏋️‍♂️ GymTracker API
+# GymTracker API
 
-Uma API backend simples e moderna para gerenciar treinos e exercícios, construída com .NET 8, C# e PostgreSQL. Ideal como base para um front-end em React ou para uso como serviço standalone.
+API backend para gerenciamento de treinos, exercícios, alunos e personal trainers. Construída com **.NET 9**, **C#** e **PostgreSQL**.
 
-[![.NET](https://img.shields.io/badge/dotnet-8.0-blue)](https://dotnet.microsoft.com/)
+[![.NET](https://img.shields.io/badge/dotnet-9.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 ---
 
-## ✨ Destaques
+## Funcionalidades
 
-- Estrutura limpa com Controllers, Services, DTOs e AutoMapper
-- Persistência com Entity Framework Core e PostgreSQL
-- Documentação interativa via Swagger
-
----
-
-## 🧰 Tecnologias
-
-- .NET 8 (ASP.NET Core Web API)
-- C#
-- Entity Framework Core
-- PostgreSQL
-- AutoMapper
-- Swagger (Swashbuckle)
+- **Personais** — cadastro e gerenciamento de personal trainers
+- **Alunos** — cada aluno vinculado a um personal
+- **Treinos** — sessões de treino com data, duração e exercícios associados (M:N via tabela join)
+- **Exercícios** — nome, repetições, séries e peso (decimal)
+- **Autenticação JWT** — proteção de todos os endpoints
+- **Validação** — FluentValidation em todos os DTOs
+- **Rate Limiting** — 100 requisições/minuto por IP
+- **Health Check** — endpoint `/health` para monitoramento
+- **Swagger** — documentação interativa da API
 
 ---
 
-## 🗂 Estrutura resumida
+## Tecnologias
 
-Principais pastas e arquivos:
-
-- `Controllers/` — endpoints (Exercicio, Treino)
-- `Data/` — `AppDbContext`
-- `DTOs/` — objetos de transferência
-- `Models/` — entidades do domínio
-- `Services/` — regras de negócio
-- `Mappings/` — perfis do AutoMapper
-- `Program.cs`, `appsettings.json`
-
----
-
-## ▶️ Pré-requisitos
-
-- .NET 8 SDK
-- PostgreSQL
-- (Opcional) dotnet-ef tools para migrations: `dotnet tool install --global dotnet-ef`
+| Tecnologia | Versão |
+|-----------|--------|
+| .NET | 9.0 |
+| ASP.NET Core | 9.0 |
+| Entity Framework Core | 9.0 |
+| PostgreSQL (Npgsql) | 9.0 |
+| AutoMapper | 12.0 |
+| FluentValidation | 11.3 |
+| JWT Bearer | 9.0 |
+| xUnit + Moq | testes |
 
 ---
 
-## ⚡ Instalação e execução (Windows / PowerShell)
+## Estrutura do projeto
 
-1. Clone o repositório e entre na pasta da API:
-
-```powershell
-git clone https://github.com/kaiquedm12/GymTracker.git
-cd GymTracker\GymTrackerApi
+```
+GymTrackerApi/
+├── Controllers/           # Endpoints da API
+│   ├── PersonalController.cs
+│   ├── AlunoController.cs
+│   ├── TreinoController.cs
+│   └── ExercicioController.cs
+├── Data/
+│   └── AppDbContext.cs     # EF Core DbContext
+├── DTOs/                   # Objetos de transferência
+│   ├── AlunoDTOs/
+│   ├── PersonalDTOs/
+│   ├── ExercicioDTOs/
+│   ├── TreinoDTOs/
+│   └── TreinoExercicioDTOs/
+├── Mappings/               # Perfis do AutoMapper
+├── Migrations/             # Migrations do EF Core
+├── Models/                 # Entidades do domínio
+│   ├── Exercicios/
+│   ├── Pessoas/            # Personal e Aluno
+│   ├── Relacionamentos/
+│   └── Treinos/
+├── Profiles/               # Perfis do AutoMapper (alternativo)
+├── Services/               # Regras de negócio
+│   └── Interfaces/
+├── Validators/             # FluentValidation
+├── Program.cs              # Entry point
+└── appsettings.json
 ```
 
-2. Crie um arquivo `.env` na raiz da pasta `GymTrackerApi` com a string de conexão (exemplo):
+---
 
-```text
+## Modelagem do banco
+
+```
+Personas (1) ──→ (N) Alunos ──→ (N) Treinos ──→ (N) Exercicios
+                                                    (via TreinosExercicios)
+                               Alunos ──→ (N) Exercicios (standalone)
+```
+
+### Tabelas
+
+- **Personais** — `Id`, `Nome`, `Email`, `Telefone`, `UserId`, `CreatedAt`
+- **Alunos** — `Id`, `Nome`, `Email`, `Telefone`, `DataNascimento`, `PersonalId` (FK), `UserId`, `CreatedAt`
+- **Treinos** — `Id`, `Nome`, `Data`, `DuracaoMinutos`, `AlunoId` (FK), `UserId`
+- **Exercicios** — `Id`, `Nome`, `Repeticoes`, `Series`, `Peso (decimal(5,2))`, `TreinoId` (FK), `AlunoId` (FK), `UserId`
+- **TreinosExercicios** — join table (`TreinoId`, `ExercicioId`) PK composta
+
+---
+
+## Endpoints
+
+### Personal
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET | `/api/personal` | Lista todos |
+| GET | `/api/personal/me` | Dados do personal logado |
+| GET | `/api/personal/{id}` | Busca por ID |
+| POST | `/api/personal` | Criar |
+| PUT | `/api/personal/{id}` | Atualizar |
+| DELETE | `/api/personal/{id}` | Excluir |
+
+### Aluno
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET | `/api/aluno?personalId=X` | Lista alunos de um personal |
+| GET | `/api/aluno/{id}` | Busca por ID |
+| POST | `/api/aluno?personalId=X` | Criar aluno |
+| PUT | `/api/aluno/{id}` | Atualizar |
+| DELETE | `/api/aluno/{id}` | Excluir |
+
+### Treino
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET | `/api/treino?alunoId=X` | Lista treinos (filtrados por aluno) |
+| GET | `/api/treino/{id}` | Busca por ID (com exercícios) |
+| POST | `/api/treino` | Criar (associa exercícios via `ExerciciosIds`) |
+| PUT | `/api/treino/{id}` | Atualizar |
+| DELETE | `/api/treino/{id}` | Excluir |
+
+### Exercício
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET | `/api/exercicio?alunoId=X` | Lista exercícios (filtrados por aluno) |
+| GET | `/api/exercicio/{id}` | Busca por ID |
+| POST | `/api/exercicio` | Criar |
+| PUT | `/api/exercicio/{id}` | Atualizar |
+| DELETE | `/api/exercicio/{id}` | Excluir |
+
+### Utilitários
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET | `/health` | Health check do banco |
+
+> **Nota:** Todos os endpoints exigem token JWT (exceto `/health`). Envie no header: `Authorization: Bearer <token>`
+
+---
+
+## Exemplos de uso (curl)
+
+### Fluxo completo
+
+#### 1. Health check (sem token)
+
+```bash
+curl http://localhost:5076/health
+```
+
+#### 2. Criar personal trainer
+
+```bash
+curl -X POST http://localhost:5076/api/personal \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nome": "Carlos Personal",
+    "email": "carlos@email.com",
+    "telefone": "11999999999"
+  }'
+```
+
+#### 3. Obter token JWT
+
+A API não possui endpoint de login próprio. Gere o token manualmente usando a chave do `appsettings.json`:
+
+```bash
+# Exemplo com jwt-cli (ou use https://jwt.io)
+# Payload: { "sub": "SEU_USER_ID", "name": "Carlos Personal" }
+# Assine com a chave: "gymtracker-super-secret-key-2024-min-32-chars!!"
+```
+
+> Para desenvolvimento, use o Swagger ou implemente um endpoint de login.
+
+#### 4. Criar aluno (personalId = 1)
+
+```bash
+curl -X POST "http://localhost:5076/api/aluno?personalId=1" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer SEU_TOKEN" \
+  -d '{
+    "nome": "João Aluno",
+    "email": "joao@email.com",
+    "telefone": "11988888888",
+    "dataNascimento": "1998-05-20T00:00:00Z"
+  }'
+```
+
+#### 5. Listar alunos do personal
+
+```bash
+curl "http://localhost:5076/api/aluno?personalId=1" \
+  -H "Authorization: Bearer SEU_TOKEN"
+```
+
+#### 6. Criar exercício (para o aluno 1)
+
+```bash
+curl -X POST http://localhost:5076/api/exercicio \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer SEU_TOKEN" \
+  -d '{
+    "nome": "Supino Reto",
+    "repeticoes": 12,
+    "series": 4,
+    "peso": 80.00,
+    "alunoId": 1
+  }'
+```
+
+#### 7. Criar treino (para o aluno 1, com exercícios 1 e 2)
+
+```bash
+curl -X POST http://localhost:5076/api/treino \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer SEU_TOKEN" \
+  -d '{
+    "nome": "Treino A - Peito e Tríceps",
+    "data": "2026-06-11T08:00:00Z",
+    "duracaoMinutos": 60,
+    "alunoId": 1,
+    "exerciciosIds": [1, 2]
+  }'
+```
+
+#### 8. Listar treinos de um aluno
+
+```bash
+curl "http://localhost:5076/api/treino?alunoId=1" \
+  -H "Authorization: Bearer SEU_TOKEN"
+```
+
+#### 9. Buscar treino com exercícios
+
+```bash
+curl "http://localhost:5076/api/treino/1" \
+  -H "Authorization: Bearer SEU_TOKEN"
+```
+
+#### 10. Atualizar exercício
+
+```bash
+curl -X PUT http://localhost:5076/api/exercicio/1 \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer SEU_TOKEN" \
+  -d '{
+    "nome": "Supino Inclinado",
+    "repeticoes": 10,
+    "series": 4,
+    "peso": 60.00
+  }'
+```
+
+#### 11. Excluir treino
+
+```bash
+curl -X DELETE http://localhost:5076/api/treino/1 \
+  -H "Authorization: Bearer SEU_TOKEN"
+```
+
+---
+
+## Pré-requisitos
+
+- [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
+- PostgreSQL (local ou [Supabase](https://supabase.com))
+- EF Core CLI (opcional): `dotnet tool install --global dotnet-ef`
+
+---
+
+## Instalação e execução
+
+### 1. Clone
+
+```bash
+git clone https://github.com/kaiquedm12/GymTracker.git
+cd GymTracker/GymTrackerApi
+```
+
+### 2. Configure o banco
+
+Crie um arquivo `.env` na pasta `GymTrackerApi`:
+
+```env
 DB_CONNECTION=Host=localhost;Port=5432;Database=gymtrackerdb;Username=postgres;Password=123456
 ```
 
-Altere `Username` e `Password` conforme seu PostgreSQL.
+Para usar Supabase, substitua pelos seus dados:
 
-3. Aplicar migrations e atualizar o banco:
+```env
+DB_CONNECTION=Host=db.xxxxx.supabase.co;Port=5432;Database=postgres;Username=postgres;Password=sua-senha
+```
 
-```powershell
+### 3. Crie as tabelas no banco
+
+Via EF Core migrations:
+
+```bash
 dotnet ef database update
 ```
 
-4. Executar a API:
+Ou execute o script SQL manualmente (veja `docs/schema.sql`).
 
-```powershell
+### 4. Rode a API
+
+```bash
 dotnet run
 ```
 
-Por padrão o Swagger ficará disponível em: http://localhost:5076/swagger (valide a porta mostrada no console).
+Swagger disponível em: `http://localhost:5076/swagger`
+
+### 5. Gerar token JWT (para testar)
+
+A API usa JWT. Para testes, gere um token com seu secret (`appsettings.json` → `Jwt:Key`):
+
+```bash
+dotnet run --project GymTrackerApi -- --generate-token
+```
+
+> Ou use o Swagger para criar um personal e obter o token.
 
 ---
 
-## � Endpoints principais
+## Testes
 
-Exemplos básicos:
+```bash
+dotnet test
+```
 
-- Exercícios
-  - GET /api/exercicio — listar todos
-  - GET /api/exercicio/{id} — obter por id
-  - POST /api/exercicio — criar
-  - PUT /api/exercicio/{id} — atualizar
-  - DELETE /api/exercicio/{id} — remover
-
-- Treinos
-  - GET /api/treino — listar todos com exercícios
-  - GET /api/treino/{id} — obter por id
-  - POST /api/treino — criar (associar exercícios existentes)
-  - PUT /api/treino/{id} — atualizar
-  - DELETE /api/treino/{id} — remover
-
-Use o Swagger para testar os endpoints interativamente.
+O projeto de testes (`GymTrackerApi.Tests`) usa xUnit + Moq + InMemoryDatabase.
 
 ---
 
-## ✅ Boas práticas e segurança
+## Variáveis de ambiente
 
-- Validações via Data Annotations nas DTOs
-- Uso de variáveis de ambiente para credenciais
-- CORS configurado para permitir front-ends autorizados
-- Recomendado habilitar HTTPS em produção
+| Variável | Obrigatório | Descrição |
+|----------|-------------|-----------|
+| `DB_CONNECTION` | Sim | String de conexão PostgreSQL |
 
----
-
-## 🤝 Como contribuir
-
-1. Faça um fork
-2. Crie uma branch: `git checkout -b feature/minha-feature`
-3. Commit: `git commit -m "feat: descrição"`
-4. Push e abra um Pull Request
-
-Pequenas melhorias como documentação, mais testes e pipelines de CI são bem-vindas.
+> As configurações de JWT ficam em `appsettings.json` → seção `Jwt`.
 
 ---
 
-## 📄 Licença
+## Boas práticas implementadas
 
-Projeto licenciado sob MIT. Veja o arquivo `LICENSE` para detalhes.
+- Autenticação JWT em todos os endpoints
+- Validação com FluentValidation
+- Rate limiting (100 req/min)
+- Health check do banco
+- CORS configurável
+- Camada de serviços separada dos controllers
+- AutoMapper para DTOs
+- Testes unitários
+- Variáveis sensíveis via `.env` (gitignorado)
 
 ---
 
-## 👨‍💻 Autor
+## Licença
 
-Kaique Demetrio — Desenvolvedor Full Stack
-
-GitHub: https://github.com/kaiquedm12
+MIT. Veja o arquivo [LICENSE](LICENSE).
 
 ---
+
+## Autor
+
+Kaique Demetrio — [@kaiquedm12](https://github.com/kaiquedm12)

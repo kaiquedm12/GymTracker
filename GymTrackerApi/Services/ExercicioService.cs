@@ -18,9 +18,12 @@ namespace GymTrackerApi.Services
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<ExercicioDTO>> GetAllAsync()
+        public async Task<IEnumerable<ExercicioDTO>> GetAllAsync(int? alunoId = null)
         {
-            var exercicios = await _context.Exercicios.ToListAsync();
+            var query = _context.Exercicios.AsQueryable();
+            if (alunoId.HasValue)
+                query = query.Where(e => e.AlunoId == alunoId);
+            var exercicios = await query.ToListAsync();
             return _mapper.Map<IEnumerable<ExercicioDTO>>(exercicios);
         }
 
@@ -30,9 +33,10 @@ namespace GymTrackerApi.Services
             return exercicio == null ? null : _mapper.Map<ExercicioDTO>(exercicio);
         }
 
-        public async Task<ExercicioDTO> CreateAsync(CreateExercicioDTO dto)
+        public async Task<ExercicioDTO> CreateAsync(CreateExercicioDTO dto, string userId)
         {
             var exercicio = _mapper.Map<Exercicio>(dto);
+            exercicio.UserId = userId;
             _context.Exercicios.Add(exercicio);
             await _context.SaveChangesAsync();
             return _mapper.Map<ExercicioDTO>(exercicio);
@@ -44,7 +48,6 @@ namespace GymTrackerApi.Services
             if (exercicio == null) return false;
 
             _mapper.Map(dto, exercicio);
-            _context.Exercicios.Update(exercicio);
             await _context.SaveChangesAsync();
             return true;
         }

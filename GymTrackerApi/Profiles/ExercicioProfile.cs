@@ -8,11 +8,8 @@ namespace GymTrackerApi.Profiles
     {
         public ExercicioProfile()
         {
-            // DTO → Model
             CreateMap<CreateExercicioDTO, Exercicio>();
             CreateMap<UpdateExercicioDTO, Exercicio>();
-
-            // Model → DTO
             CreateMap<Exercicio, ExercicioDTO>();
         }
     }

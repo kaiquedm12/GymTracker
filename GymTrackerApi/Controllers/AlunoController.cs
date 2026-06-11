@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using GymTrackerApi.DTOs.TreinoDTOs;
+using GymTrackerApi.DTOs.AlunoDTOs;
 using GymTrackerApi.Services.Interfaces;
 
 namespace GymTrackerApi.Controllers
@@ -8,40 +8,40 @@ namespace GymTrackerApi.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class TreinoController : ControllerBase
+    public class AlunoController : ControllerBase
     {
-        private readonly ITreinoService _service;
+        private readonly IAlunoService _service;
 
-        public TreinoController(ITreinoService service)
+        public AlunoController(IAlunoService service)
         {
             _service = service;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TreinoDTO>>> GetAll([FromQuery] int? alunoId = null)
+        public async Task<ActionResult<IEnumerable<AlunoDTO>>> GetAll([FromQuery] int personalId)
         {
-            var treinos = await _service.GetAllAsync(alunoId);
-            return Ok(treinos);
+            var alunos = await _service.GetAllAsync(personalId);
+            return Ok(alunos);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<TreinoDTO>> GetById(int id)
+        public async Task<ActionResult<AlunoDTO>> GetById(int id)
         {
-            var treino = await _service.GetByIdAsync(id);
-            if (treino == null) return NotFound();
-            return Ok(treino);
+            var aluno = await _service.GetByIdAsync(id);
+            if (aluno == null) return NotFound();
+            return Ok(aluno);
         }
 
         [HttpPost]
-        public async Task<ActionResult<TreinoDTO>> Create(CreateTreinoDTO dto)
+        public async Task<ActionResult<AlunoDTO>> Create(CreateAlunoDTO dto, [FromQuery] int personalId)
         {
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "anonymous";
-            var treino = await _service.CreateAsync(dto, userId);
-            return CreatedAtAction(nameof(GetById), new { id = treino.Id }, treino);
+            var aluno = await _service.CreateAsync(dto, personalId, userId);
+            return CreatedAtAction(nameof(GetById), new { id = aluno.Id }, aluno);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, UpdateTreinoDTO dto)
+        public async Task<IActionResult> Update(int id, UpdateAlunoDTO dto)
         {
             var updated = await _service.UpdateAsync(id, dto);
             if (!updated) return NotFound();

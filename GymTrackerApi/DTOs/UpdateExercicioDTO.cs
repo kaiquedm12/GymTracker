@@ -14,7 +14,9 @@ namespace GymTrackerApi.DTOs.ExercicioDTOs
         [Range(1, 100, ErrorMessage = "As séries devem estar entre 1 e 100.")]
         public int Series { get; set; }
 
-        [Range(0, 1000, ErrorMessage = "O peso deve ser um valor válido.")]
-        public double Peso { get; set; }
+        [Range(0, 999.99, ErrorMessage = "O peso deve ser um valor válido.")]
+        public decimal Peso { get; set; }
+
+        public int? AlunoId { get; set; }
     }
 }

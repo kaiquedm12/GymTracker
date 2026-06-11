@@ -6,6 +6,6 @@ namespace GymTrackerApi.DTOs.TreinoExercicioDTOs
         public int ExercicioId { get; set; }
 
         public int Repeticoes { get; set; }
-        public double Peso { get; set; }
+        public decimal Peso { get; set; }
     }
 }

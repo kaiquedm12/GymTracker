@@ -1,24 +1,20 @@
-namespace GymTrackerApi.Models.Treinos;
 using GymTrackerApi.Models.Exercicios;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+using GymTrackerApi.Models.Pessoas;
 using GymTrackerApi.Models.Relacionamentos;
+
+namespace GymTrackerApi.Models.Treinos;
 
 public class Treino
 {
-    [Key]
     public int Id { get; set; }
-    [Required (ErrorMessage = "O nome do treino é obrigatório.")]
-    public string Nome { get; set; }
-    [Required(ErrorMessage = "A data do treino é obrigatória.")]
+    public string Nome { get; set; } = string.Empty;
     public DateTime Data { get; set; } = DateTime.UtcNow;
-    [Required(ErrorMessage = "A lista de exercícios é obrigatória.")]
-    [MaxLength(500, ErrorMessage = "A lista de exercícios não pode exceder 500 caracteres.")]
+    public int DuracaoMinutos { get; set; }
+    public string UserId { get; set; } = string.Empty;
 
-    // Um treino tem vários exercícios
+    public int AlunoId { get; set; }
+    public Aluno Aluno { get; set; } = null!;
+
     public List<Exercicio> Exercicios { get; set; } = new();
-    public ICollection<TreinoExercicio> TreinoExercicio { get; set; }
-
-
+    public ICollection<TreinoExercicio> TreinoExercicio { get; set; } = new List<TreinoExercicio>();
 }

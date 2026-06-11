@@ -3,6 +3,7 @@ using GymTrackerApi.Models;
 using GymTrackerApi.Models.Treinos;
 using GymTrackerApi.Models.Exercicios;
 using GymTrackerApi.Models.Relacionamentos;
+using GymTrackerApi.Models.Pessoas;
 
 namespace GymTrackerApi.Data
 {
@@ -12,32 +13,46 @@ namespace GymTrackerApi.Data
         {
         }
 
-        // Tabelas principais
         public DbSet<Treino> Treinos { get; set; }
         public DbSet<Exercicio> Exercicios { get; set; }
-
-        // Tabela de relação
         public DbSet<TreinoExercicio> TreinosExercicios { get; set; }
+        public DbSet<Personal> Personais { get; set; }
+        public DbSet<Aluno> Alunos { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // Configura a chave composta da tabela intermediária
             modelBuilder.Entity<TreinoExercicio>()
                 .HasKey(te => new { te.TreinoId, te.ExercicioId });
 
-            // Relacionamento Treino -> TreinoExercicio
             modelBuilder.Entity<TreinoExercicio>()
                 .HasOne(te => te.Treino)
                 .WithMany(t => t.TreinoExercicio)
                 .HasForeignKey(te => te.TreinoId);
 
-            // Relacionamento Exercicio -> TreinoExercicio
             modelBuilder.Entity<TreinoExercicio>()
                 .HasOne(te => te.Exercicio)
                 .WithMany(e => e.TreinosExercicios)
                 .HasForeignKey(te => te.ExercicioId);
+
+            modelBuilder.Entity<Aluno>()
+                .HasOne(a => a.Personal)
+                .WithMany(p => p.Alunos)
+                .HasForeignKey(a => a.PersonalId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Treino>()
+                .HasOne(t => t.Aluno)
+                .WithMany(a => a.Treinos)
+                .HasForeignKey(t => t.AlunoId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Exercicio>()
+                .HasOne(e => e.Aluno)
+                .WithMany(a => a.Exercicios)
+                .HasForeignKey(e => e.AlunoId)
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

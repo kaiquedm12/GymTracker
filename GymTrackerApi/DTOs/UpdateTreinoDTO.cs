@@ -1,12 +1,11 @@
 namespace GymTrackerApi.DTOs.TreinoDTOs
 {
-    using System;
-    using System.Collections.Generic;
-
     public class UpdateTreinoDTO
     {
-        public string Nome { get; set; }
+        public string Nome { get; set; } = string.Empty;
         public DateTime Data { get; set; }
-        public List<int> ExerciciosIds { get; set; }
+        public int DuracaoMinutos { get; set; }
+        public int AlunoId { get; set; }
+        public List<int> ExerciciosIds { get; set; } = new();
     }
 }
